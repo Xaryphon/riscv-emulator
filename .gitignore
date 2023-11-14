@@ -1,0 +1,5 @@
+build/
+examples/compile_commands.json
+examples/*.elf
+examples/.*
+

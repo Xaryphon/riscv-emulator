@@ -1,0 +1,15 @@
+CC = riscv64-elf-gcc
+CFLAGS = -mabi=ilp32 -march=rv32i -nostartfiles -nodefaultlibs -ffreestanding -Wall -Werror
+
+rule cc
+    command = ${CC} ${CFLAGS} -MD -MQ $out -MF $out.d -o $out $in
+    deps = gcc
+    depfile = $out.d
+
+rule compdb
+    command = ninja -t compdb $RULES > $out
+
+build strlen.elf: cc strlen.c
+build compile_commands.json: compdb build.ninja
+    RULES = cc
+
