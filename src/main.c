@@ -158,7 +158,7 @@ int main(int argc, char **argv) {
         return 1;
     }
     memset(ram_ptr, 0xff, RAM_SIZE);
-    strcpy(ram_ptr, "Hello World!\n");
+    strcpy(ram_ptr, "Hello World!");
 
     rv_MemoryDevice *ram = rv_memory_push(builder, RAM_ADDR, RAM_SIZE);
     assert(ram);
