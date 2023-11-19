@@ -12,9 +12,9 @@ static const char level_chars[] = {
 };
 static_assert(sizeof(level_chars) == RV_LOG_LEVELS, "enum rv_log_level changed");
 
-void rv_log(enum rv_log_level lvl, const char *fmt, ...) {
+void rv_log(enum rv_log_level lvl, const char *func, const char *fmt, ...) {
     char lvl_char = lvl < RV_LOG_LEVELS ? level_chars[lvl] : '?';
-    fprintf(stderr, "%c ", lvl_char);
+    fprintf(stderr, "%c %s | ", lvl_char, func);
     va_list args;
     va_start(args, fmt);
     vfprintf(stderr, fmt, args);
