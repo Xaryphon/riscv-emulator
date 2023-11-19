@@ -56,7 +56,8 @@ bool rv_memory_access(rv_Environment *env, void *ptr, rv_UInt address, size_t si
             rv_warn("Failed to read memory address 0x%0" RV_PRIx_PADDED " size 0x%zx: Memory not marked as readable", address, size);
             return false;
         }
-        assert(mem->callback == NULL);
+        if (mem->callback != NULL)
+            return mem->callback(mem->data, offset, ptr, size, RV_MEMORY_CALLBACK_READ);
         memcpy(ptr, (uint8_t*)mem->data + offset, size);
         break;
     case RV_MEMORY_CALLBACK_WRITE:
@@ -64,7 +65,8 @@ bool rv_memory_access(rv_Environment *env, void *ptr, rv_UInt address, size_t si
             rv_warn("Failed to write memory address 0x%0" RV_PRIx_PADDED " size 0x%zx: Memory not marked as writable", address, size);
             return false;
         }
-        assert(mem->callback == NULL);
+        if (mem->callback != NULL)
+            return mem->callback(mem->data, offset, ptr, size, RV_MEMORY_CALLBACK_WRITE);
         memcpy((uint8_t*)mem->data + offset, ptr, size);
         break;
     default:
