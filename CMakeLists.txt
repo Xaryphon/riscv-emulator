@@ -43,6 +43,7 @@ target_include_directories(riscv
 )
 target_sources(riscv
     PRIVATE
+        src/devices/uart/ns16550.c
         src/environment.c
         src/elf_loader.c
         src/exec.c

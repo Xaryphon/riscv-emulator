@@ -10,6 +10,7 @@
 #include <unistd.h>
 #include <elf.h>
 
+#include "devices/uart/ns16550.h"
 #include "elf_loader.h"
 #include "gdbserver.h"
 #include "logger.h"
@@ -30,6 +31,7 @@ static void rv_dump_memory_map(rv_MemoryDevice *map) {
 }
 
 #define ROM_ADDR 0x80000000
+#define URT_ADDR 0x40000000
 #define RAM_ADDR 0x10000000
 #define RAM_SIZE 4096
 
@@ -140,6 +142,12 @@ int main(int argc, char **argv) {
     assert(builder);
     if (!rv_load_elf(rom_ptr, rom_size, builder, ROM_ADDR, &entry)) {
         rv_error("Failed to load elf");
+        rv_memory_destroy(builder);
+        return 1;
+    }
+
+    if (!rv_dev_uart_ns16550_init(builder, URT_ADDR)) {
+        rv_error("Failed to init UART");
         rv_memory_destroy(builder);
         return 1;
     }
