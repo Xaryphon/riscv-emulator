@@ -19,7 +19,7 @@
 #include "memory_builder.h"
 
 static void rv_dump_memory_map(rv_MemoryDevice *map) {
-    rv_debug(" address      size  flags  data");
+    rv_debug("%" RV_PRI_PAD "s      size  flags  data", "address");
     for (; map->size != 0; map++) {
         rv_debug("%0" RV_PRIx_PADDED "  %08zx   %c%c%c%c  %p", map->address, map->size,
                  map->flags & RV_MEMORY_SHOULD_FREE ? 'F' : ' ',
