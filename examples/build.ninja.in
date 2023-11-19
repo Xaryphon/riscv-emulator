@@ -1,0 +1,10 @@
+CC = @RV_CC@
+CFLAGS = @RV_CFLAGS@ -mabi=@RV_MABI@ -march=@RV_MARCH@ -nostartfiles -nodefaultlibs -ffreestanding -fpie -static-pie
+
+rule cc
+    command = $CC $CFLAGS -MD -MQ $out -MF $out.d -o $out $in
+    depfile = $out.d
+    deps = gcc
+
+build strlen.elf: cc strlen.c
+
