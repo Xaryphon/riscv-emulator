@@ -112,14 +112,14 @@ rv_Trap rv_exec_inst(rv_Environment *env, rv_Hart *hart, rv_DecodedInst inst) {
 #define RV_LOAD_S(target, address, bytes, sign_extender) \
         do { \
             static_assert((bytes) <= sizeof(rv_UInt), #bytes " > sizeof(rv_UInt)"); \
-            rv_UInt tmp; \
+            rv_UInt tmp = 0; \
             RV_LOAD(tmp, (address), (bytes)); \
             (target) = sign_extender(tmp); \
         } while (0)
 #define RV_LOAD_U(target, address, bytes) \
         do { \
             static_assert((bytes) <= sizeof(rv_UInt), #bytes " > sizeof(rv_UInt)"); \
-            rv_UInt tmp; \
+            rv_UInt tmp = 0; \
             RV_LOAD(tmp, (address), (bytes)); \
             (target) = tmp; \
         } while (0)
