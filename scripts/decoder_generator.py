@@ -181,12 +181,15 @@ def write_source(file, inst_table, field_table):
 def main():
     argp = argparse.ArgumentParser()
     argp.add_argument('-I', dest='xlen', metavar='XLEN', type=int, choices=(32, 64), default=32)
+    argp.add_argument('-M', dest='m', action='store_true')
     argp.add_argument('-s', dest='source', metavar='OUTPUT_C', type=str)
     argp.add_argument('-i', dest='header', metavar='OUTPUT_H', type=str)
     argp.add_argument('-o', dest='opcodes_dir', metavar='RISCV_OPCODES', type=str, required=True)
     args = argp.parse_args()
 
     extensions = ['i']
+    if args.m:
+        extensions.append('m')
     xlen = args.xlen
     RISCV_OPCODES_PATH = args.opcodes_dir
 

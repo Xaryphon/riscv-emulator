@@ -4,6 +4,7 @@ project(RiscVVM C)
 
 set(RV_XLEN 32 CACHE STRING "XLEN")
 set_property(CACHE RV_XLEN PROPERTY STRINGS 32 64)
+set(RV_EXTENSION_M ON CACHE BOOL "Enable M Extension")
 
 add_subdirectory(examples)
 
@@ -25,12 +26,21 @@ FetchContent_MakeAvailable(riscvOpcodes)
 set(RV_GENERATED_INST_C "${CMAKE_CURRENT_BINARY_DIR}/src/inst.c")
 set(RV_GENERATED_INST_H "${CMAKE_CURRENT_BINARY_DIR}/src/inst.h")
 
+add_executable(riscv)
+set(decoder_options "-I${RV_XLEN}")
+if(RV_EXTENSION_M)
+    list(APPEND decoder_options -M)
+    target_compile_definitions(riscv
+        PRIVATE
+            RV_EXTENSION_M=1
+    )
+endif()
+
 execute_process(
-    COMMAND "${Python3_EXECUTABLE}" "${CMAKE_CURRENT_SOURCE_DIR}/scripts/decoder_generator.py" -o "${riscvopcodes_SOURCE_DIR}" -s "${RV_GENERATED_INST_C}" -i "${RV_GENERATED_INST_H}" -I ${RV_XLEN}
+    COMMAND "${Python3_EXECUTABLE}" "${CMAKE_CURRENT_SOURCE_DIR}/scripts/decoder_generator.py" -o "${riscvopcodes_SOURCE_DIR}" -s "${RV_GENERATED_INST_C}" -i "${RV_GENERATED_INST_H}" ${decoder_options}
     COMMAND_ERROR_IS_FATAL ANY
 )
 
-add_executable(riscv)
 target_compile_definitions(riscv
     PRIVATE
         _GNU_SOURCE

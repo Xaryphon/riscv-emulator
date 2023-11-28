@@ -85,6 +85,38 @@ rv_Trap rv_step(rv_Environment *env, rv_Hart *hart) {
 
 #define RV_LOW_32 (rv_UInt)0xffffffffu
 
+uint32_t rv_mulhu_32(uint32_t x, uint32_t y) {
+    return ((uint64_t)x * (uint64_t)y) >> 32;
+}
+
+#if RV_XLEN >= 64
+// https://stackoverflow.com/a/26855440
+uint64_t rv_mulhu_64(uint64_t x, uint64_t y) {
+    uint64_t a = x >> 32, b = x & 0xffffffff;
+    uint64_t c = y >> 32, d = y & 0xffffffff;
+
+    uint64_t ac = a * c;
+    uint64_t bc = b * c;
+    uint64_t ad = a * d;
+    uint64_t bd = b * d;
+
+    uint64_t mid34 = (bd >> 32) + (bc & 0xffffffff) + (ad & 0xffffffff);
+
+    uint64_t upper64 = ac + (bc >> 32) + (ad >> 32) + (mid34 >> 32);
+    //uint64_t lower64 = (mid34 << 32) | (bd & 0xffffffff);
+
+    return upper64;
+}
+#endif
+
+#if RV_XLEN == 32
+#define rv_mulhu rv_mulhu_32
+#elif RV_XLEN == 64
+#define rv_mulhu rv_mulhu_64
+#else
+#error "Unimplemneted XLEN"
+#endif
+
 #define RV_REGISTER_VAL(hart, reg) ((reg) == 0 ? (rv_UInt)0 : (hart)->x[(reg) - 1])
 #define RV_REGISTER_REF(hart, reg) *((reg) == 0 ? &(rv_UInt){0} : &(hart)->x[(reg) - 1])
 
@@ -103,6 +135,9 @@ rv_Trap rv_exec_inst(rv_Environment *env, rv_Hart *hart, rv_DecodedInst inst) {
 #define RV_RS1 RV_REGISTER_VAL(hart, RV_DECODED_GET_RS1(&inst))
 #define RV_RS2 RV_REGISTER_VAL(hart, RV_DECODED_GET_RS2(&inst))
 #define RV_IMM RV_DECODED_GET_IMM(&inst)
+
+#define RV_RS1_32 (RV_RS1 & RV_LOW_32)
+#define RV_RS2_32 (RV_RS2 & RV_LOW_32)
 
 #define RV_LOAD(target, address, bytes) \
         do { \
@@ -231,6 +266,37 @@ rv_Trap rv_exec_inst(rv_Environment *env, rv_Hart *hart, rv_DecodedInst inst) {
     case RV_INST_LWU: RV_LOAD_32_U(RV_RD, RV_RS1 + RV_IMM); break;
 
     case RV_INST_SD: RV_STORE_64(RV_RS1 + RV_IMM, RV_RS2); break;
+#endif
+
+#if RV_EXTENSION_M
+    case RV_INST_MUL: RV_RD = RV_RS1 * RV_RS2; break;
+    case RV_INST_MULH:
+        rv_error("FIXME: Implement MULH");
+        return RV_TRAP_UNIMPLEMENTED;
+    case RV_INST_MULHU: RV_RD = rv_mulhu(RV_RS1, RV_RS2); break;
+    case RV_INST_MULHSU:
+        rv_error("FIXME: Implement MULHSU");
+        return RV_TRAP_UNIMPLEMENTED;
+    case RV_INST_DIV:
+        rv_error("FIXME: Implement DIV");
+        return RV_TRAP_UNIMPLEMENTED;
+    case RV_INST_DIVU: RV_RD = (RV_RS2 != 0) ? (RV_RS1 / RV_RS2) : ~(rv_UInt)0; break;
+    case RV_INST_REM:
+        rv_error("FIXME: Implement REM");
+        return RV_TRAP_UNIMPLEMENTED;
+    case RV_INST_REMU: RV_RD = (RV_RS2 != 0) ? (RV_RS1 % RV_RS2) : RV_RS1; break;
+
+#if RV_XLEN >= 64
+    case RV_INST_MULW: RV_RD = RV_SIGN_EXTEND_32(RV_RS1_32 * RV_RS2_32); break;
+    case RV_INST_DIVW:
+        rv_error("FIXME: Implement DIVW");
+        return RV_TRAP_UNIMPLEMENTED;
+    case RV_INST_DIVUW: RV_RD = RV_RS2_32 != 0 ? RV_SIGN_EXTEND_32(RV_RS1_32 / RV_RS2_32) : ~(rv_UInt)0; break;
+    case RV_INST_REMW:
+        rv_error("FIXME: Implement REMW");
+        return RV_TRAP_UNIMPLEMENTED;
+    case RV_INST_REMUW: RV_RD = RV_SIGN_EXTEND_32(RV_RS2_32 != 0 ? RV_RS1_32 % RV_RS2_32 : RV_RS1_32); break;
+#endif
 #endif
 
 #if 0
